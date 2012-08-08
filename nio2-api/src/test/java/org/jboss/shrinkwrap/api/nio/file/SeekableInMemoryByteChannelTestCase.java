@@ -24,6 +24,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.util.logging.Logger;
 
+import org.jboss.shrinkwrap.api.nio.file.SeekableInMemoryByteChannel;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;

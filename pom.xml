@@ -250,6 +250,7 @@
     <module>depchain</module>
     <module>dist</module>
     <module>impl-base</module>
+    <module>nio2-api</module>
     <module>nio2-impl</module>
     <module>spi</module>
   </modules>

@@ -16,9 +16,9 @@
   <modelVersion>4.0.0</modelVersion>
 
   <!-- Artifact Configuration -->
-  <artifactId>shrinkwrap-nio2-impl</artifactId>
-  <name>ShrinkWrap NIO.2 Implementation</name>
-  <description>ShrinkWrap NIO.2 Implementation</description>
+  <artifactId>shrinkwrap-nio2-api</artifactId>
+  <name>ShrinkWrap NIO.2 API</name>
+  <description>ShrinkWrap NIO.2 API</description>
 
 
   <!-- Properties -->
@@ -34,14 +34,8 @@
      -->
     <dependency>
       <groupId>org.jboss.shrinkwrap</groupId>
-      <artifactId>shrinkwrap-nio2-api</artifactId>
+      <artifactId>shrinkwrap-api</artifactId>
       <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.jboss.shrinkwrap</groupId>
-      <artifactId>shrinkwrap-impl-base</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
     </dependency>
 
     <!-- 

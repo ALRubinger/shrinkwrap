@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.shrinkwrap.api.nio.file;
+package org.jboss.shrinkwrap.impl.nio.file;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,6 +32,7 @@ import java.util.logging.Logger;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.Asset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
+import org.jboss.shrinkwrap.impl.nio.file.ShrinkWrapFileStore;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
