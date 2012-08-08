@@ -25,16 +25,30 @@ import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.asset.Asset;
 
 /**
- * Composes together the {@link SeekableInMemoryByteChannel} implementation such that it may be represented as an
- * {@link Asset}, able to be added to an {@link Archive}
+ * An {@link Asset} implementation backed by an internal memory representation; able to be directly added to an
+ * {@link Archive}, and supports all operations designated by the NIO.2 {@link SeekableByteChannel} API. Thread-safe.
  *
  * @author <a href="mailto:alr@jboss.org">Andrew Lee Rubinger</a>
  */
-class MemoryFile implements Asset, SeekableByteChannel {
+public class MemoryAsset implements Asset, SeekableByteChannel {
 
     private final SeekableInMemoryByteChannel delegate;
 
-    MemoryFile(final SeekableInMemoryByteChannel delegate) {
+    /**
+     * Creates a new instance with internal memory buffer initially sized at 0 and at position 0, capable of holding a
+     * maximum of {@link Integer#MAX_VALUE} bytes.
+     */
+    public MemoryAsset() {
+        this(new SeekableInMemoryByteChannel());
+    }
+
+    /**
+     * Creates a new instance with internal memory buffer delegate using the specified (required)
+     * {@link SeekableInMemoryByteChannel}
+     *
+     * @param delegate
+     */
+    MemoryAsset(final SeekableInMemoryByteChannel delegate) throws IllegalArgumentException {
         assert delegate != null : "Delegate must be specified";
         this.delegate = delegate;
     }
@@ -99,7 +113,8 @@ class MemoryFile implements Asset, SeekableByteChannel {
      */
     @Override
     public SeekableByteChannel position(final long newPosition) throws IOException {
-        return delegate.position(newPosition);
+        delegate.position(newPosition);
+        return this;
     }
 
     /**
@@ -115,6 +130,8 @@ class MemoryFile implements Asset, SeekableByteChannel {
     }
 
     /**
+     * {@inheritDoc}
+     *
      * @param size
      * @return
      * @throws IOException
@@ -122,7 +139,8 @@ class MemoryFile implements Asset, SeekableByteChannel {
      */
     @Override
     public SeekableByteChannel truncate(final long size) throws IOException {
-        return delegate.truncate(size);
+        this.delegate.truncate(size);
+        return this;
     }
 
     /**
