@@ -17,17 +17,14 @@
 package org.jboss.shrinkwrap.impl.nio.file;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Logger;
 
 import org.jboss.shrinkwrap.api.ArchivePaths;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.nio.file.ShrinkWrapFileSystems;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
 import org.junit.Assert;
@@ -52,10 +49,7 @@ public class PathTestCase {
         // Setup and mount the archive
         final String name = "test.jar";
         final JavaArchive archive = ShrinkWrap.create(JavaArchive.class, name);
-        final Map<String, JavaArchive> environment = new HashMap<>();
-        environment.put("archive", archive);
-        final URI uri = URI.create("shrinkwrap://" + archive.getId());
-        final FileSystem fs = FileSystems.newFileSystem(uri, environment);
+        final FileSystem fs = ShrinkWrapFileSystems.newFileSystem(archive);
         this.fileSystem = fs;
     }
 

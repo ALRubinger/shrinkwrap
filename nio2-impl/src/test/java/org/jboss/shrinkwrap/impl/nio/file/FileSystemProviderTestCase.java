@@ -22,15 +22,13 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Logger;
 
 import junit.framework.Assert;
 
 import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.nio.file.ShrinkWrapFileSystems;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
-import org.jboss.shrinkwrap.impl.nio.file.ShrinkWrapFileSystem;
 import org.junit.Test;
 
 /**
@@ -45,14 +43,14 @@ public class FileSystemProviderTestCase {
 
     @Test(expected = IllegalArgumentException.class)
     public void nullEnvironmentMakesIllegalArgumentException() throws IOException {
-        FileSystems.newFileSystem(URI.create("shrinkwrap://myArchive.jar"), null);
+        FileSystems.newFileSystem(URI.create(ShrinkWrapFileSystems.PROTOCOL + "://myArchive.jar"), null);
     }
 
     @Test
     public void mountNewArchive() throws Exception {
         @SuppressWarnings("unchecked")
-        final FileSystem fs = FileSystems
-            .newFileSystem(URI.create("shrinkwrap://myArchive.jar"), Collections.EMPTY_MAP);
+        final FileSystem fs = FileSystems.newFileSystem(
+            URI.create(ShrinkWrapFileSystems.PROTOCOL + "://myArchive.jar"), Collections.EMPTY_MAP);
         System.out.println(fs.toString());
         // TODO check something
     }
@@ -60,11 +58,8 @@ public class FileSystemProviderTestCase {
     @Test
     public void mountExistingArchive() throws Exception {
         final String name = "test.jar";
-        final JavaArchive archive = ShrinkWrap.create(JavaArchive.class, name).addClass(this.getClass());
-        final Map<String, JavaArchive> environment = new HashMap<>();
-        environment.put("archive", archive);
-        final FileSystem fs = FileSystems.newFileSystem(URI.create("shrinkwrap://" + archive.getId() + "/"),
-            environment);
+        final JavaArchive archive = ShrinkWrap.create(JavaArchive.class, name);
+        final FileSystem fs = ShrinkWrapFileSystems.newFileSystem(archive);
 
         Assert.assertNotNull(fs);
         Assert.assertTrue(fs instanceof ShrinkWrapFileSystem);

@@ -19,20 +19,16 @@ package org.jboss.shrinkwrap.impl.nio.file;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.nio.file.FileStore;
 import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.FileAttributeView;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Logger;
 
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.Asset;
+import org.jboss.shrinkwrap.api.nio.file.ShrinkWrapFileSystems;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
-import org.jboss.shrinkwrap.impl.nio.file.ShrinkWrapFileStore;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -59,10 +55,7 @@ public class FileStoreTestCase {
         // Setup
         final String name = "test.jar";
         final JavaArchive archive = ShrinkWrap.create(JavaArchive.class, name);
-        final Map<String, JavaArchive> environment = new HashMap<>();
-        environment.put("archive", archive);
-        final URI uri = URI.create("shrinkwrap://" + archive.getId());
-        final FileSystem fs = FileSystems.newFileSystem(uri, environment);
+        final FileSystem fs = ShrinkWrapFileSystems.newFileSystem(archive);
         final FileStore fileStore = fs.getFileStores().iterator().next();
 
         // Set

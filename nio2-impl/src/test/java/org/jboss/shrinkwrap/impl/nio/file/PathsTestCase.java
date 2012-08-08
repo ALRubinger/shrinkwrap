@@ -21,19 +21,16 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystemNotFoundException;
-import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.spi.FileSystemProvider;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Logger;
 
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ArchivePaths;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.nio.file.ShrinkWrapFileSystems;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
-import org.jboss.shrinkwrap.impl.nio.file.ShrinkWrapPath;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -66,9 +63,7 @@ public class PathsTestCase {
     public void createFileSystem() throws IOException {
         final String name = "test.jar";
         final JavaArchive archive = ShrinkWrap.create(JavaArchive.class, name);
-        final Map<String, JavaArchive> environment = new HashMap<>();
-        environment.put("archive", archive);
-        this.fs = FileSystems.newFileSystem(URI.create(SCHEME + archive.getId() + "/"), environment);
+        this.fs = ShrinkWrapFileSystems.newFileSystem(archive);
         this.archive = archive;
     }
 
