@@ -362,7 +362,7 @@ public class ShrinkWrapPath implements Path {
      */
     @Override
     public WatchKey register(WatchService watcher, Kind<?>... events) throws IOException {
-        return this.register(watcher, events, null);
+        return this.register(watcher, events, (Modifier) null);
     }
 
     /*
