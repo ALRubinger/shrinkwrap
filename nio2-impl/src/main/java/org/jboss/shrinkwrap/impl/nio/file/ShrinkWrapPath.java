@@ -333,15 +333,15 @@ public class ShrinkWrapPath implements Path {
         return null;
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * {@inheritDoc}
      *
      * @see java.nio.file.Path#toFile()
      */
     @Override
     public File toFile() {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException(
+            "This path is associated with a ShrinkWrap archive, not the default provider");
     }
 
     /*

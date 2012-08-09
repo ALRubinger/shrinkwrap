@@ -109,6 +109,18 @@ public class PathsTestCase {
             .getRoot().toString());
     }
 
+    @Test
+    public void toFile() throws URISyntaxException {
+        final Path path = Paths.get(this.getBaseURI());
+        boolean gotException = false;
+        try {
+            path.toFile();
+        } catch (final UnsupportedOperationException e) {
+            gotException = true;
+        }
+        Assert.assertTrue("toFile should not be supported for ShrinkWrap paths", gotException);
+    }
+
     private URI getBaseURI() throws URISyntaxException {
         return new URI(SCHEME + archive.getId());
     }
