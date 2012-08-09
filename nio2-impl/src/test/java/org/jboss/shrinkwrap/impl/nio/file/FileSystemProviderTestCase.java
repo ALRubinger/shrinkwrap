@@ -21,7 +21,6 @@ import java.net.URI;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.spi.FileSystemProvider;
-import java.util.Collections;
 import java.util.logging.Logger;
 
 import junit.framework.Assert;
@@ -44,15 +43,6 @@ public class FileSystemProviderTestCase {
     @Test(expected = IllegalArgumentException.class)
     public void nullEnvironmentMakesIllegalArgumentException() throws IOException {
         FileSystems.newFileSystem(URI.create(ShrinkWrapFileSystems.PROTOCOL + "://myArchive.jar"), null);
-    }
-
-    @Test
-    public void mountNewArchive() throws Exception {
-        @SuppressWarnings("unchecked")
-        final FileSystem fs = FileSystems.newFileSystem(
-            URI.create(ShrinkWrapFileSystems.PROTOCOL + "://myArchive.jar"), Collections.EMPTY_MAP);
-        System.out.println(fs.toString());
-        // TODO check something
     }
 
     @Test

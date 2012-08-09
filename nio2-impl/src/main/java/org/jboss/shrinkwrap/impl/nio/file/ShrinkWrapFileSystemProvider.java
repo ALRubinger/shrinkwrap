@@ -47,8 +47,6 @@ import java.util.logging.Logger;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ArchivePath;
 import org.jboss.shrinkwrap.api.ArchivePaths;
-import org.jboss.shrinkwrap.api.GenericArchive;
-import org.jboss.shrinkwrap.api.ShrinkWrap;
 
 /**
  * {@link FileSystemProvider} implementation for ShrinkWrap {@link Archive}s.
@@ -136,14 +134,6 @@ public class ShrinkWrapFileSystemProvider extends FileSystemProvider {
                 // User specified the wrong type, translate and rethrow
                 throw new IllegalArgumentException("Unexpected argument passed into environment under key "
                     + ENV_KEY_ARCHIVE + ": " + archiveArg);
-            }
-        }
-
-        // Need to create a new archive?
-        if (archive == null) {
-            archive = ShrinkWrap.create(GenericArchive.class, id);
-            if (log.isLoggable(Level.FINER)) {
-                log.finer("Created new archive: " + archive.toString() + " for URI " + uri.toString());
             }
         }
 
