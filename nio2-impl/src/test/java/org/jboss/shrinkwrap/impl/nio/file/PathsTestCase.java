@@ -49,8 +49,6 @@ public class PathsTestCase {
     @SuppressWarnings("unused")
     private static final Logger log = Logger.getLogger(PathsTestCase.class.getName());
 
-    private static final String SCHEME = "shrinkwrap://";
-
     /**
      * {@link FileSystem} under test
      */
@@ -79,51 +77,53 @@ public class PathsTestCase {
     @Test
     public void get() throws URISyntaxException {
         // Get a previously-opened filesystem by passing in a mounted URI
-        final Path path = Paths.get(new URI(SCHEME + archive.getId()));
+        final Path path = Paths.get(ShrinkWrapFileSystems.getRootUri(archive));
         Assert.assertTrue("Wrong Path implementation returned", path instanceof ShrinkWrapPath);
         Assert.assertEquals("Path returned is not correct", ArchivePaths.root().get(), path.toString());
     }
 
     @Test(expected = FileSystemNotFoundException.class)
     public void getNonexistantFilesystem() throws URISyntaxException {
-        Paths.get(new URI(SCHEME + "fakeId"));
+        Paths.get(new URI(ShrinkWrapFileSystems.PROTOCOL + "://fakeId"));
     }
 
     @Test(expected = FileSystemNotFoundException.class)
     public void getClosedFilesystem() throws URISyntaxException, IOException {
         fs.close();
-        Paths.get(this.getBaseURI());
+        Paths.get(ShrinkWrapFileSystems.getRootUri(archive));
     }
 
     @Test
     public void getFileSystem() throws URISyntaxException {
-        Assert.assertEquals("Should obtain correct filesyste,", fs, Paths.get(this.getBaseURI()).getFileSystem());
+        Assert.assertEquals("Should obtain correct filesyste,", fs, Paths
+            .get(ShrinkWrapFileSystems.getRootUri(archive)).getFileSystem());
     }
 
     @Test
     public void isAbsolute() throws URISyntaxException {
-        Assert.assertTrue("Paths should all be absolute", Paths.get(this.getBaseURI()).isAbsolute());
+        Assert.assertTrue("Paths should all be absolute", Paths.get(ShrinkWrapFileSystems.getRootUri(archive))
+            .isAbsolute());
     }
 
     @Test
     public void getRoot() throws URISyntaxException {
-        Assert.assertEquals("Root was not in expected form", ArchivePaths.root().get(), Paths.get(this.getBaseURI())
-            .getRoot().toString());
+        Assert.assertEquals("Root was not in expected form", ArchivePaths.root().get(),
+            Paths.get(ShrinkWrapFileSystems.getRootUri(archive)).getRoot().toString());
     }
 
     @Test(expected = UnsupportedOperationException.class)
     public void register() throws IOException, URISyntaxException {
-        Paths.get(this.getBaseURI()).register(null, (Kind<?>) null);
+        Paths.get(ShrinkWrapFileSystems.getRootUri(archive)).register(null, (Kind<?>) null);
     }
 
     @Test(expected = UnsupportedOperationException.class)
     public void registerLongForm() throws IOException, URISyntaxException {
-        Paths.get(this.getBaseURI()).register(null, new Kind<?>[] { null }, (Modifier) null);
+        Paths.get(ShrinkWrapFileSystems.getRootUri(archive)).register(null, new Kind<?>[] { null }, (Modifier) null);
     }
 
     @Test
     public void toFile() throws URISyntaxException {
-        final Path path = Paths.get(this.getBaseURI());
+        final Path path = Paths.get(ShrinkWrapFileSystems.getRootUri(archive));
         boolean gotException = false;
         try {
             path.toFile();
@@ -131,10 +131,6 @@ public class PathsTestCase {
             gotException = true;
         }
         Assert.assertTrue("toFile should not be supported for ShrinkWrap paths", gotException);
-    }
-
-    private URI getBaseURI() throws URISyntaxException {
-        return new URI(SCHEME + archive.getId());
     }
 
 }
