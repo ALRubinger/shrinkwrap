@@ -23,6 +23,8 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.WatchEvent.Kind;
+import java.nio.file.WatchEvent.Modifier;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.logging.Logger;
 
@@ -107,6 +109,16 @@ public class PathsTestCase {
     public void getRoot() throws URISyntaxException {
         Assert.assertEquals("Root was not in expected form", ArchivePaths.root().get(), Paths.get(this.getBaseURI())
             .getRoot().toString());
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void register() throws IOException, URISyntaxException {
+        Paths.get(this.getBaseURI()).register(null, (Kind<?>) null);
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void registerLongForm() throws IOException, URISyntaxException {
+        Paths.get(this.getBaseURI()).register(null, new Kind<?>[] { null }, (Modifier) null);
     }
 
     @Test

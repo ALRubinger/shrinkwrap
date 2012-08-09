@@ -344,27 +344,25 @@ public class ShrinkWrapPath implements Path {
             "This path is associated with a ShrinkWrap archive, not the default provider");
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * {@inheritDoc}
      *
      * @see java.nio.file.Path#register(java.nio.file.WatchService, java.nio.file.WatchEvent.Kind<?>[],
-     * java.nio.file.WatchEvent.Modifier[])
+     *      java.nio.file.WatchEvent.Modifier[])
      */
     @Override
     public WatchKey register(WatchService watcher, Kind<?>[] events, Modifier... modifiers) throws IOException {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException("ShrinkWrap Paths do not support registration with a watch service.");
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * {@inheritDoc}
      *
      * @see java.nio.file.Path#register(java.nio.file.WatchService, java.nio.file.WatchEvent.Kind<?>[])
      */
     @Override
     public WatchKey register(WatchService watcher, Kind<?>... events) throws IOException {
-        // TODO Auto-generated method stub
-        return null;
+        return this.register(watcher, events, null);
     }
 
     /*
