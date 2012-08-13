@@ -26,7 +26,10 @@ import java.nio.file.WatchEvent.Kind;
 import java.nio.file.WatchEvent.Modifier;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import java.util.StringTokenizer;
 
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ArchivePath;
@@ -168,48 +171,118 @@ public class ShrinkWrapPath implements Path {
         return ((offset = string.indexOf(c, offset)) == -1) ? 0 : 1 + countOccurrences(string, c, offset + 1);
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * Returns the components of this path in order from root out
+     *
+     * @return
+     */
+    private static List<String> tokenize(final ShrinkWrapPath path) {
+        final StringTokenizer tokenizer = new StringTokenizer(path.toString(), ArchivePath.SEPARATOR_STRING);
+        final List<String> tokens = new ArrayList<>();
+        while (tokenizer.hasMoreTokens()) {
+            tokens.add(tokenizer.nextToken());
+        }
+        return tokens;
+    }
+
+    /**
+     * {@inheritDoc}
      *
      * @see java.nio.file.Path#getName(int)
      */
     @Override
-    public Path getName(int index) {
-        // TODO Auto-generated method stub
-        return null;
+    public Path getName(final int index) {
+        // Precondition checks handled by subpath impl
+        final Path subpath = this.subpath(0, index);
+        return subpath;
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * {@inheritDoc}
      *
      * @see java.nio.file.Path#subpath(int, int)
      */
     @Override
-    public Path subpath(int beginIndex, int endIndex) {
-        // TODO Auto-generated method stub
-        return null;
+    public Path subpath(final int beginIndex, final int endIndex) {
+        if (beginIndex < 0) {
+            throw new IllegalArgumentException("Begin index must be greater than 0");
+        }
+        if (endIndex < 0) {
+            throw new IllegalArgumentException("End index must be greater than 0");
+        }
+        if (endIndex <= beginIndex) {
+            throw new IllegalArgumentException("End index must be greater than begin index");
+        }
+        final List<String> tokens = tokenize(this);
+        final int tokenCount = tokens.size() - 1;
+        if (beginIndex >= tokenCount) {
+            throw new IllegalArgumentException("Invalid begin index " + endIndex + " for " + this.toString()
+                + "; must be between 0 and " + tokenCount + " exclusive");
+        }
+        if (endIndex > tokenCount) {
+            throw new IllegalArgumentException("Invalid end index " + endIndex + " for " + this.toString()
+                + "; must be between 0 and " + tokenCount + " inclusive");
+        }
+        final StringBuilder newPathBuilder = new StringBuilder();
+        for (int i = 0; i < endIndex; i++) {
+            newPathBuilder.append(ArchivePath.SEPARATOR);
+            newPathBuilder.append(tokens.get(i));
+        }
+        final Path newPath = new ShrinkWrapPath(ArchivePaths.create(newPathBuilder.toString()), this.fileSystem);
+        return newPath;
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * {@inheritDoc}
      *
      * @see java.nio.file.Path#startsWith(java.nio.file.Path)
      */
     @Override
-    public boolean startsWith(Path other) {
-        // TODO Auto-generated method stub
-        return false;
+    public boolean startsWith(final Path other) {
+        // Precondition checks
+        if (other == null) {
+            throw new IllegalArgumentException("other path must be specified");
+        }
+
+        // Not a ShrinkWrapPath
+        if (!(other instanceof ShrinkWrapPath)) {
+            return false;
+        }
+
+        // Unequal FS
+        if (this.getFileSystem() != other.getFileSystem()) {
+            return false;
+        }
+
+        // Tokenize each
+        final List<String> ourTokens = tokenize(this);
+        final List<String> otherTokens = tokenize((ShrinkWrapPath) other);
+
+        // More names in the other Path than we have
+        final int otherTokensSize = otherTokens.size();
+        if (otherTokensSize > ourTokens.size()) {
+            return false;
+        }
+
+        // Ensure each of the other name elements match ours
+        for (int i = 0; i < otherTokensSize; i++) {
+            if (!otherTokens.get(i).equals(ourTokens.get(i))) {
+                return false;
+            }
+        }
+
+        // All conditions met
+        return true;
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * {@inheritDoc}
      *
      * @see java.nio.file.Path#startsWith(java.lang.String)
      */
     @Override
-    public boolean startsWith(String other) {
-        // TODO Auto-generated method stub
-        return false;
+    public boolean startsWith(final String other) {
+        return this.startsWith(new ShrinkWrapPath(ArchivePaths.create(other), this.fileSystem));
     }
 
     /*
