@@ -17,12 +17,16 @@
 package org.jboss.shrinkwrap.impl.nio.file;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
+import java.nio.file.WatchEvent.Kind;
+import java.util.Iterator;
 import java.util.logging.Logger;
 
 import org.jboss.shrinkwrap.api.ArchivePaths;
+import org.jboss.shrinkwrap.api.GenericArchive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.nio.file.ShrinkWrapFileSystems;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
@@ -41,7 +45,7 @@ public class PathTestCase {
     @SuppressWarnings("unused")
     private static final Logger log = Logger.getLogger(PathTestCase.class.getName());
 
-    private FileSystem fileSystem;
+    private ShrinkWrapFileSystem fileSystem;
 
     @Before
     public void createFileSystem() throws URISyntaxException, IOException {
@@ -49,7 +53,7 @@ public class PathTestCase {
         // Setup and mount the archive
         final String name = "test.jar";
         final JavaArchive archive = ShrinkWrap.create(JavaArchive.class, name);
-        final FileSystem fs = ShrinkWrapFileSystems.newFileSystem(archive);
+        final ShrinkWrapFileSystem fs = (ShrinkWrapFileSystem) ShrinkWrapFileSystems.newFileSystem(archive);
         this.fileSystem = fs;
     }
 
@@ -176,5 +180,149 @@ public class PathTestCase {
         final Path path = fileSystem.getPath("toplevel");
         Assert.assertEquals("toAbsolute should return the absolute form of the Path", "/toplevel", path
             .toAbsolutePath().toString());
+    }
+
+    @Test
+    public void iterator() {
+        final Path path = fileSystem.getPath("toplevel/second/third/fourth");
+        final Iterator<Path> paths = path.iterator();
+        Assert.assertEquals("/toplevel", paths.next().toString());
+        Assert.assertEquals("/toplevel/second", paths.next().toString());
+        Assert.assertEquals("/toplevel/second/third", paths.next().toString());
+        Assert.assertEquals("/toplevel/second/third/fourth", paths.next().toString());
+    }
+
+    @Test
+    public void iteratorRoot() {
+        final Path path = fileSystem.getPath("/");
+        final Iterator<Path> paths = path.iterator();
+        Assert.assertFalse("Iterator should not return root element", paths.hasNext());
+    }
+
+    @Test
+    public void toUri() {
+        final Path path = fileSystem.getPath("/toplevel/second");
+        final URI uri = path.toUri();
+        final String expected = ShrinkWrapFileSystems.PROTOCOL + "://" + fileSystem.getArchive().getId()
+            + path.toString();
+        Assert.assertEquals("toUri did not return form as expected", expected, uri.toString());
+    }
+
+    @Test
+    public void getName() {
+        final Path path = fileSystem.getPath("/toplevel/second/third");
+        final Path second = path.getName(2);
+        Assert.assertEquals("/toplevel/second/third", second.toString());
+    }
+
+    @Test
+    public void getNameRoot() {
+        final Path path = fileSystem.getPath("/toplevel/second/third");
+        final Path second = path.getName(0);
+        Assert.assertEquals("/toplevel", second.toString());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void subpathNegativeBegin() {
+        fileSystem.getPath("/toplevel/second/third").subpath(-1, 1);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void subpathNegativeEnd() {
+        fileSystem.getPath("/toplevel/second/third").subpath(0, -1);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void subpathEndBeforeBegin() {
+        fileSystem.getPath("/toplevel/second/third").subpath(2, 1);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void subpathBeginTooLarge() {
+        fileSystem.getPath("/toplevel/second/third").subpath(4, 5);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void subpathEndTooLarge() {
+        fileSystem.getPath("/toplevel/second/third").subpath(2, 4);
+    }
+
+    @Test
+    public void subpath() {
+        final Path subpath = fileSystem.getPath("/toplevel/second/third").subpath(1, 2);
+        Assert.assertEquals("/toplevel/second", subpath.toString());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void startsWithNullPathInput() {
+        fileSystem.getPath("/toplevel/second/third").startsWith((Path) null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void startsWithNullStringInput() {
+        fileSystem.getPath("/toplevel/second/third").startsWith((String) null);
+    }
+
+    @Test
+    public void startsWithOtherPathImpl() {
+        final boolean startsWith = fileSystem.getPath("/toplevel/second/third").startsWith(new MockPath());
+        Assert.assertFalse(startsWith);
+    }
+
+    /**
+     * Path cannot start with a path from another FS
+     */
+    @Test
+    public void startsWithOtherFs() throws IOException {
+        final FileSystem otherFs = ShrinkWrapFileSystems.newFileSystem(ShrinkWrap.create(GenericArchive.class));
+        final Path otherPath = otherFs.getPath("/otherpath");
+        final boolean startsWith = fileSystem.getPath("/toplevel/second/third").startsWith(otherPath);
+        Assert.assertFalse(startsWith);
+    }
+
+    @Test
+    public void startsWith() {
+        final Path path = fileSystem.getPath("/toplevel/second/third");
+        final boolean startsWith = path.startsWith(fileSystem.getPath("/toplevel/second/"));
+        Assert.assertTrue(startsWith);
+    }
+
+    @Test
+    public void startsWithString() {
+        final Path path = fileSystem.getPath("/toplevel/second/third");
+        final boolean startsWith = path.startsWith("/toplevel/second/");
+        Assert.assertTrue(startsWith);
+    }
+
+    @Test
+    public void startsWithNegative() {
+        final Path path = fileSystem.getPath("/toplevel/second/third");
+        final boolean startsWith = path.startsWith(fileSystem.getPath("/top"));
+        Assert.assertFalse(startsWith);
+    }
+
+    @Test
+    public void startsWithBiggerThan() {
+        final Path path = fileSystem.getPath("/toplevel/second/third");
+        final boolean startsWith = path.startsWith(fileSystem.getPath("/toplevel/second/third/fourth"));
+        Assert.assertFalse(startsWith);
+    }
+
+    // We don't interface w/ File API
+    @Test(expected = UnsupportedOperationException.class)
+    public void toFile() {
+        fileSystem.getPath("/toplevel").toFile();
+    }
+
+    // We don't support events
+    @Test(expected = UnsupportedOperationException.class)
+    public void register() throws IOException {
+        fileSystem.getPath("/toplevel").register(null, (Kind<?>) null);
+    }
+
+    // We don't support events
+    @Test(expected = UnsupportedOperationException.class)
+    public void registerLongform() throws IOException {
+        fileSystem.getPath("/toplevel").register(null, (Kind<?>) null, null);
     }
 }

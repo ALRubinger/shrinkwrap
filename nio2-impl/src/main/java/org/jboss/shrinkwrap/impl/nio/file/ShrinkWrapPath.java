@@ -34,6 +34,7 @@ import java.util.StringTokenizer;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ArchivePath;
 import org.jboss.shrinkwrap.api.ArchivePaths;
+import org.jboss.shrinkwrap.api.nio.file.ShrinkWrapFileSystems;
 
 /**
  * NIO.2 {@link Path} implementation adapting to the {@link ArchivePath} construct in a ShrinkWrap {@link Archive}
@@ -193,7 +194,7 @@ public class ShrinkWrapPath implements Path {
     @Override
     public Path getName(final int index) {
         // Precondition checks handled by subpath impl
-        final Path subpath = this.subpath(0, index);
+        final Path subpath = this.subpath(0, index + 1);
         return subpath;
     }
 
@@ -214,7 +215,7 @@ public class ShrinkWrapPath implements Path {
             throw new IllegalArgumentException("End index must be greater than begin index");
         }
         final List<String> tokens = tokenize(this);
-        final int tokenCount = tokens.size() - 1;
+        final int tokenCount = tokens.size();
         if (beginIndex >= tokenCount) {
             throw new IllegalArgumentException("Invalid begin index " + endIndex + " for " + this.toString()
                 + "; must be between 0 and " + tokenCount + " exclusive");
@@ -282,6 +283,9 @@ public class ShrinkWrapPath implements Path {
      */
     @Override
     public boolean startsWith(final String other) {
+        if (other == null) {
+            throw new IllegalArgumentException("other path input must be specified");
+        }
         return this.startsWith(new ShrinkWrapPath(ArchivePaths.create(other), this.fileSystem));
     }
 
@@ -373,15 +377,18 @@ public class ShrinkWrapPath implements Path {
         return null;
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * {@inheritDoc}
      *
      * @see java.nio.file.Path#toUri()
      */
     @Override
     public URI toUri() {
-        // TODO Auto-generated method stub
-        return null;
+        final URI root = ShrinkWrapFileSystems.getRootUri(this.fileSystem.getArchive());
+        // Compose a new URI location, stripping out the extra "/" root
+        final String location = root.toString() + this.toString().substring(1);
+        final URI uri = URI.create(location);
+        return uri;
     }
 
     /**
@@ -438,15 +445,26 @@ public class ShrinkWrapPath implements Path {
         return this.register(watcher, events, (Modifier) null);
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * {@inheritDoc}
      *
      * @see java.nio.file.Path#iterator()
      */
     @Override
     public Iterator<Path> iterator() {
-        // TODO Auto-generated method stub
-        return null;
+
+        final List<String> tokens = tokenize(this);
+        final int tokensSize = tokens.size();
+        final List<Path> paths = new ArrayList<>(tokensSize);
+        for (int i = 0; i < tokensSize; i++) {
+            ArchivePath newPath = ArchivePaths.root();
+            for (int j = 0; j <= i; j++) {
+                newPath = ArchivePaths.create(newPath, tokens.get(j));
+            }
+            paths.add(new ShrinkWrapPath(newPath, this.fileSystem));
+        }
+
+        return paths.iterator();
     }
 
     /*
