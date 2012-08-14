@@ -17,6 +17,7 @@
 package org.jboss.shrinkwrap.impl.nio.file;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.FileSystem;
@@ -241,17 +242,8 @@ public class ShrinkWrapPath implements Path {
     @Override
     public boolean startsWith(final Path other) {
         // Precondition checks
-        if (other == null) {
-            throw new IllegalArgumentException("other path must be specified");
-        }
-
-        // Not a ShrinkWrapPath
-        if (!(other instanceof ShrinkWrapPath)) {
-            return false;
-        }
-
-        // Unequal FS
-        if (this.getFileSystem() != other.getFileSystem()) {
+        boolean endsWith = this.beginsOrEndsWithCorrectFS(other);
+        if (!endsWith) {
             return false;
         }
 
@@ -289,26 +281,60 @@ public class ShrinkWrapPath implements Path {
         return this.startsWith(new ShrinkWrapPath(ArchivePaths.create(other), this.fileSystem));
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * {@inheritDoc}
      *
      * @see java.nio.file.Path#endsWith(java.nio.file.Path)
      */
     @Override
-    public boolean endsWith(Path other) {
-        // TODO Auto-generated method stub
-        return false;
+    public boolean endsWith(final Path other) {
+        // Precondition checks
+        boolean endsWith = this.beginsOrEndsWithCorrectFS(other);
+        if (!endsWith) {
+            return false;
+        }
+
+        // All ShrinkWrap Paths are absolute, so check equality
+        return this.toString().equals(other.toString());
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * Determines whether the FS and type of the provided {@link Path} are equal to ours.
+     *
+     * @param other
+     * @return
+     */
+    private boolean beginsOrEndsWithCorrectFS(final Path other) {
+        // Precondition checks
+        if (other == null) {
+            throw new IllegalArgumentException("other path must be specified");
+        }
+
+        // Not a ShrinkWrapPath
+        if (!(other instanceof ShrinkWrapPath)) {
+            return false;
+        }
+
+        // Unequal FS
+        if (this.getFileSystem() != other.getFileSystem()) {
+            return false;
+        }
+
+        // OK
+        return true;
+    }
+
+    /**
+     * {@inheritDoc}
      *
      * @see java.nio.file.Path#endsWith(java.lang.String)
      */
     @Override
-    public boolean endsWith(String other) {
-        // TODO Auto-generated method stub
-        return false;
+    public boolean endsWith(final String other) {
+        if (other == null) {
+            throw new IllegalArgumentException("other path input must be specified");
+        }
+        return this.endsWith(new ShrinkWrapPath(ArchivePaths.create(other), this.fileSystem));
     }
 
     /*
@@ -402,15 +428,18 @@ public class ShrinkWrapPath implements Path {
         return this;
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * {@inheritDoc}
      *
      * @see java.nio.file.Path#toRealPath(java.nio.file.LinkOption[])
      */
     @Override
-    public Path toRealPath(LinkOption... options) throws IOException {
-        // TODO Auto-generated method stub
-        return null;
+    public Path toRealPath(final LinkOption... options) throws IOException {
+        // All links are "real" (no symlinks) and absolute, so just return this (if exists)
+        if (!this.fileSystem.getArchive().contains(this.delegate)) {
+            throw new FileNotFoundException("Path points to a nonexistant file or directory: " + this.toString());
+        }
+        return this;
     }
 
     /**

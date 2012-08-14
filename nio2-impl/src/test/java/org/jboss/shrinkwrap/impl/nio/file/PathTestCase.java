@@ -16,10 +16,12 @@
  */
 package org.jboss.shrinkwrap.impl.nio.file;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.FileSystem;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.WatchEvent.Kind;
 import java.util.Iterator;
@@ -28,6 +30,7 @@ import java.util.logging.Logger;
 import org.jboss.shrinkwrap.api.ArchivePaths;
 import org.jboss.shrinkwrap.api.GenericArchive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.nio.file.ShrinkWrapFileSystems;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
@@ -324,5 +327,70 @@ public class PathTestCase {
     @Test(expected = UnsupportedOperationException.class)
     public void registerLongform() throws IOException {
         fileSystem.getPath("/toplevel").register(null, (Kind<?>) null, null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void endsWithNullPathInput() {
+        fileSystem.getPath("/toplevel/second/third").endsWith((Path) null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void endsWithNullStringInput() {
+        fileSystem.getPath("/toplevel/second/third").endsWith((String) null);
+    }
+
+    @Test
+    public void endsWithOtherPathImpl() {
+        final boolean endsWith = fileSystem.getPath("/toplevel/second/third").endsWith(new MockPath());
+        Assert.assertFalse(endsWith);
+    }
+
+    /**
+     * Path cannot start with a path from another FS
+     */
+    @Test
+    public void endsWithOtherFs() throws IOException {
+        final FileSystem otherFs = ShrinkWrapFileSystems.newFileSystem(ShrinkWrap.create(GenericArchive.class));
+        final Path otherPath = otherFs.getPath("/otherpath");
+        final boolean endsWith = fileSystem.getPath("/toplevel/second/third").endsWith(otherPath);
+        Assert.assertFalse(endsWith);
+    }
+
+    @Test
+    public void endsWith() {
+        final Path path = fileSystem.getPath("/toplevel/second/third");
+        // We don't support relative paths, so "endsWith" must really just test for equality
+        final boolean endsWith = path.endsWith(fileSystem.getPath("toplevel/second/third"));
+        Assert.assertTrue(endsWith);
+    }
+
+    @Test
+    public void endsWithNegative() {
+        final Path path = fileSystem.getPath("/toplevel/second/third");
+        final boolean endsWith = path.endsWith(fileSystem.getPath("/toplevel"));
+        Assert.assertFalse(endsWith);
+    }
+
+    @Test
+    public void endsWithBiggerThan() {
+        final Path path = fileSystem.getPath("/toplevel/second/third");
+        final boolean endsWith = path.endsWith(fileSystem.getPath("/toplevel/second/third/fourth"));
+        Assert.assertFalse(endsWith);
+    }
+
+    @Test
+    public void toRealPath() throws IOException {
+        final String newPathName = "/toplevel/myAsset";
+        this.fileSystem.getArchive().add(EmptyAsset.INSTANCE, newPathName);
+        final Path path = fileSystem.getPath(newPathName);
+        final Path realPath = path.toRealPath((LinkOption[]) null);
+        Assert.assertEquals(path.toString(), realPath.toString());
+    }
+
+    @Test(expected = FileNotFoundException.class)
+    public void toRealPathDoesntExist() throws IOException {
+        final String newPathName = "/toplevel/myAsset";
+        final Path path = fileSystem.getPath(newPathName);
+        path.toRealPath((LinkOption[]) null);
     }
 }
