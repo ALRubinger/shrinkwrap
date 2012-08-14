@@ -230,7 +230,7 @@ public class ShrinkWrapPath implements Path {
             newPathBuilder.append(ArchivePath.SEPARATOR);
             newPathBuilder.append(tokens.get(i));
         }
-        final Path newPath = new ShrinkWrapPath(ArchivePaths.create(newPathBuilder.toString()), this.fileSystem);
+        final Path newPath = this.fromString(newPathBuilder.toString());
         return newPath;
     }
 
@@ -278,7 +278,8 @@ public class ShrinkWrapPath implements Path {
         if (other == null) {
             throw new IllegalArgumentException("other path input must be specified");
         }
-        return this.startsWith(new ShrinkWrapPath(ArchivePaths.create(other), this.fileSystem));
+        final Path otherPath = this.fromString(other);
+        return this.startsWith(otherPath);
     }
 
     /**
@@ -334,62 +335,71 @@ public class ShrinkWrapPath implements Path {
         if (other == null) {
             throw new IllegalArgumentException("other path input must be specified");
         }
-        return this.endsWith(new ShrinkWrapPath(ArchivePaths.create(other), this.fileSystem));
+        final Path otherPath = this.fromString(other);
+        return this.endsWith(otherPath);
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * {@inheritDoc}
      *
      * @see java.nio.file.Path#normalize()
      */
     @Override
     public Path normalize() {
-        // TODO Auto-generated method stub
-        return null;
+        // No symlinks or relative links, so just return this
+        return this;
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * {@inheritDoc}
      *
      * @see java.nio.file.Path#resolve(java.nio.file.Path)
      */
     @Override
-    public Path resolve(Path other) {
-        // TODO Auto-generated method stub
-        return null;
+    public Path resolve(final Path other) {
+        if (other == null) {
+            throw new IllegalArgumentException("other path must be specified");
+        }
+        // All paths are absolute, so just return other
+        return other;
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * {@inheritDoc}
      *
      * @see java.nio.file.Path#resolve(java.lang.String)
      */
     @Override
-    public Path resolve(String other) {
-        // TODO Auto-generated method stub
-        return null;
+    public Path resolve(final String other) {
+        // Delegate
+        final Path otherPath = this.fromString(other);
+        return this.resolve(otherPath);
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * {@inheritDoc}
      *
      * @see java.nio.file.Path#resolveSibling(java.nio.file.Path)
      */
     @Override
-    public Path resolveSibling(Path other) {
-        // TODO Auto-generated method stub
-        return null;
+    public Path resolveSibling(final Path other) {
+        if (other == null) {
+            throw new IllegalArgumentException("other path must be specified");
+        }
+        // All paths are absolute, so just return other
+        return other;
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * {@inheritDoc}
      *
      * @see java.nio.file.Path#resolveSibling(java.lang.String)
      */
     @Override
-    public Path resolveSibling(String other) {
-        // TODO Auto-generated method stub
-        return null;
+    public Path resolveSibling(final String other) {
+        // Delegate
+        final Path otherPath = this.fromString(other);
+        return this.resolveSibling(otherPath);
     }
 
     /**
@@ -399,8 +409,11 @@ public class ShrinkWrapPath implements Path {
      */
     @Override
     public Path relativize(final Path other) {
-        // TODO Auto-generated method stub
-        return null;
+        if (other == null) {
+            throw new IllegalArgumentException("other path must be specified");
+        }
+        // No symlinks, empty Paths, or relative links, so just return the argument
+        return other;
     }
 
     /**
@@ -496,15 +509,18 @@ public class ShrinkWrapPath implements Path {
         return paths.iterator();
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * {@inheritDoc}
      *
      * @see java.nio.file.Path#compareTo(java.nio.file.Path)
      */
     @Override
     public int compareTo(final Path other) {
-        // TODO Auto-generated method stub
-        return 0;
+        if (other == null) {
+            throw new IllegalArgumentException("other path must be specified");
+        }
+        // Just defer to alpha ordering since we're absolute
+        return this.toString().compareTo(other.toString());
     }
 
     /**
@@ -515,6 +531,20 @@ public class ShrinkWrapPath implements Path {
     @Override
     public String toString() {
         return this.delegate.get();
+    }
+
+    /**
+     * Creates a new {@link ShrinkWrapPath} instance from the specified input {@link String}
+     *
+     * @param path
+     * @return
+     */
+    private Path fromString(final String path) {
+        if (path == null) {
+            throw new IllegalArgumentException("path must be specified");
+        }
+        // Delegate
+        return new ShrinkWrapPath(ArchivePaths.create(path), fileSystem);
     }
 
 }

@@ -393,4 +393,115 @@ public class PathTestCase {
         final Path path = fileSystem.getPath(newPathName);
         path.toRealPath((LinkOption[]) null);
     }
+
+    @Test
+    public void normalize() {
+        final Path path = fileSystem.getPath("/toplevel/myAsset");
+        final Path normalized = path.normalize();
+        Assert.assertEquals(path.toString(), normalized.toString());
+    }
+
+    @Test
+    public void relativize() {
+        final Path path = fileSystem.getPath("/toplevel/myAsset");
+        final Path other = fileSystem.getPath("/toplevel/other");
+        final Path relativized = path.relativize(other);
+        Assert.assertEquals(other.toString(), relativized.toString());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void relativizeNull() {
+        final Path path = fileSystem.getPath("/toplevel/myAsset");
+        path.relativize(null);
+    }
+
+    @Test
+    public void resolve() {
+        final Path path = fileSystem.getPath("/toplevel/myDir/");
+        final Path other = fileSystem.getPath("/toplevel/myDir/myAsset");
+        final Path resolved = path.resolve(other);
+        // Since absolute, by spec return the value of the other path
+        Assert.assertEquals(other.toString(), resolved.toString());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void resolveNull() {
+        fileSystem.getPath("/toplevel/myDir/").resolve((Path) null);
+    }
+
+    @Test
+    public void resolveString() {
+        final Path path = fileSystem.getPath("/toplevel/myDir/");
+        final String otherName = "/toplevel/myDir/myAsset";
+        final Path other = fileSystem.getPath(otherName);
+        final Path resolved = path.resolve(otherName);
+        // Since absolute, by spec return the value of the other path
+        Assert.assertEquals(other.toString(), resolved.toString());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void resolveNullString() {
+        fileSystem.getPath("/toplevel/myDir/").resolve((String) null);
+    }
+
+    @Test
+    public void resolveSibling() {
+        final Path path = fileSystem.getPath("/toplevel/myDir/");
+        final Path other = fileSystem.getPath("/toplevel/myDir/myAsset");
+        final Path resolved = path.resolveSibling(other);
+        // Since absolute, by spec return the value of the other path
+        Assert.assertEquals(other.toString(), resolved.toString());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void resolveSiblingNull() {
+        fileSystem.getPath("/toplevel/myDir/").resolveSibling((Path) null);
+    }
+
+    @Test
+    public void resolveSiblingString() {
+        final Path path = fileSystem.getPath("/toplevel/myDir/");
+        final String otherName = "/toplevel/myDir/myAsset";
+        final Path other = fileSystem.getPath(otherName);
+        final Path resolved = path.resolveSibling(otherName);
+        // Since absolute, by spec return the value of the other path
+        Assert.assertEquals(other.toString(), resolved.toString());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void resolveSublingNullString() {
+        fileSystem.getPath("/toplevel/myDir/").resolveSibling((String) null);
+    }
+
+    @Test
+    public void compareToGreaterValue() {
+        final Path path = fileSystem.getPath("/toplevel/a");
+        final String otherName = "/toplevel/b";
+        final Path other = fileSystem.getPath(otherName);
+        final int compare = path.compareTo(other);
+        Assert.assertEquals(-1, compare);
+    }
+
+    @Test
+    public void compareToLesserValue() {
+        final Path path = fileSystem.getPath("/toplevel/b");
+        final String otherName = "/toplevel/a";
+        final Path other = fileSystem.getPath(otherName);
+        final int compare = path.compareTo(other);
+        Assert.assertEquals(1, compare);
+    }
+
+    @Test
+    public void compareToEqualValue() {
+        final Path path = fileSystem.getPath("/toplevel/a");
+        final String otherName = "/toplevel/a";
+        final Path other = fileSystem.getPath(otherName);
+        final int compare = path.compareTo(other);
+        Assert.assertEquals(0, compare);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void compareToNull() throws IOException {
+        fileSystem.getPath("/toplevel/a").compareTo(null);
+    }
 }
