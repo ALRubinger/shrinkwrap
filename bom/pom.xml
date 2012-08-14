@@ -67,6 +67,16 @@
         <artifactId>shrinkwrap-impl-base</artifactId>
         <version>${project.version}</version>
       </dependency>
+      <dependency>
+        <groupId>org.jboss.shrinkwrap</groupId>
+        <artifactId>shrinkwrap-nio2-api</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jboss.shrinkwrap</groupId>
+        <artifactId>shrinkwrap-nio2-impl</artifactId>
+        <version>${project.version}</version>
+      </dependency>
     </dependencies>
   
   </dependencyManagement>
