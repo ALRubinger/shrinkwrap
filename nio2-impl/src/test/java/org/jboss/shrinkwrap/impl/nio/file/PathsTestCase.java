@@ -23,8 +23,6 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.WatchEvent.Kind;
-import java.nio.file.WatchEvent.Modifier;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.logging.Logger;
 
@@ -91,46 +89,6 @@ public class PathsTestCase {
     public void getClosedFilesystem() throws URISyntaxException, IOException {
         fs.close();
         Paths.get(ShrinkWrapFileSystems.getRootUri(archive));
-    }
-
-    @Test
-    public void getFileSystem() throws URISyntaxException {
-        Assert.assertEquals("Should obtain correct filesyste,", fs, Paths
-            .get(ShrinkWrapFileSystems.getRootUri(archive)).getFileSystem());
-    }
-
-    @Test
-    public void isAbsolute() throws URISyntaxException {
-        Assert.assertTrue("Paths should all be absolute", Paths.get(ShrinkWrapFileSystems.getRootUri(archive))
-            .isAbsolute());
-    }
-
-    @Test
-    public void getRoot() throws URISyntaxException {
-        Assert.assertEquals("Root was not in expected form", ArchivePaths.root().get(),
-            Paths.get(ShrinkWrapFileSystems.getRootUri(archive)).getRoot().toString());
-    }
-
-    @Test(expected = UnsupportedOperationException.class)
-    public void register() throws IOException, URISyntaxException {
-        Paths.get(ShrinkWrapFileSystems.getRootUri(archive)).register(null, (Kind<?>) null);
-    }
-
-    @Test(expected = UnsupportedOperationException.class)
-    public void registerLongForm() throws IOException, URISyntaxException {
-        Paths.get(ShrinkWrapFileSystems.getRootUri(archive)).register(null, new Kind<?>[] { null }, (Modifier) null);
-    }
-
-    @Test
-    public void toFile() throws URISyntaxException {
-        final Path path = Paths.get(ShrinkWrapFileSystems.getRootUri(archive));
-        boolean gotException = false;
-        try {
-            path.toFile();
-        } catch (final UnsupportedOperationException e) {
-            gotException = true;
-        }
-        Assert.assertTrue("toFile should not be supported for ShrinkWrap paths", gotException);
     }
 
 }

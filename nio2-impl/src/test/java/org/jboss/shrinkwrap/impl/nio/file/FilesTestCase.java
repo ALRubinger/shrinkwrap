@@ -35,7 +35,6 @@ import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -195,8 +194,6 @@ public class FilesTestCase {
         Assert.assertTrue("Should not be able to create directory unless parents are first present", gotException);
     }
 
-    @Ignore
-    // Implement Path.relativize()
     @Test
     public void createDirectoriesRecursive() throws IOException {
         final String dirName = "/newDirectory/child";
