@@ -28,9 +28,12 @@ import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.GenericArchive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.Asset;
+import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
+import org.jboss.shrinkwrap.api.classloader.FilteredClassLoader;
 import org.jboss.shrinkwrap.api.classloader.ShrinkWrapClassLoader;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
+import org.jboss.shrinkwrap.impl.base.MockArchive;
 import org.jboss.shrinkwrap.impl.base.io.IOUtil;
 import org.junit.After;
 import org.junit.Assert;
@@ -42,6 +45,7 @@ import org.junit.Test;
  *
  * @author <a href="mailto:aslak@redhat.com">Aslak Knutsen</a>
  * @author <a href="mailto:andrew.rubinger@jboss.org">ALR</a>
+ * @author <a href="mailto:ales.justin@jboss.org">Ales Justin</a>
  * @version $Revision: $
  */
 public class ShrinkWrapClassLoaderTestCase {
@@ -217,6 +221,29 @@ public class ShrinkWrapClassLoaderTestCase {
 
         // SHRINKWRAP-237: This throws IOException: Stream closed
         IOUtil.copyWithClose(resource.openStream(), new ByteArrayOutputStream());
+    }
+
+    @Test(expected = ClassNotFoundException.class)
+    public void shouldNotBeAbleToLoadFilteredClass() throws Exception {
+        JavaArchive jar = ShrinkWrap.create(JavaArchive.class);
+        jar.addClass(MockArchive.class);
+        FilteredClassLoader fcl = new FilteredClassLoader(LoadedTestClass.class.getPackage().getName());
+        ShrinkWrapClassLoader cl = new ShrinkWrapClassLoader(fcl, jar);
+        cl.loadClass(LoadedTestClass.class.getName());
+    }
+    
+    @Test
+    public void shouldNotBeAbleToGetFilteredResource() throws Exception {
+        JavaArchive jar = ShrinkWrap.create(JavaArchive.class);
+        jar.addClass(MockArchive.class);
+        jar.addAsResource(EmptyAsset.INSTANCE, "org/jboss/acme/foobar.xml");
+        String excluded = "org/jboss/shrinkwrap/impl/base/asset";
+        FilteredClassLoader fcl = new FilteredClassLoader(excluded);
+        ShrinkWrapClassLoader cl = new ShrinkWrapClassLoader(fcl, jar);
+        String name = excluded + "/Test.properties";
+        URL resource = cl.getResource(name);
+        Assert.assertNull(resource);
+        Assert.assertNotNull(cl.getResource("org/jboss/acme/foobar.xml"));
     }
 
     // -------------------------------------------------------------------------------------||
